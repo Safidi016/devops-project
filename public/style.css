@@ -1,0 +1,74 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  color: #112;
+}
+
+header {
+  background: #0056b3;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+main {
+  padding: 30px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.block {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+.hidden {
+  display: none;
+}
+
+#message {
+  margin-top: 20px;
+  font-weight: bold;
+  color: green;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  height: 60px;   /* ajuste selon tes besoins */
+  width: auto;
+}
+
+.titles h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.titles h2 {
+  margin: 4px 0 0 0;
+  font-size: 1.1rem;
+  font-weight: normal;
+}
