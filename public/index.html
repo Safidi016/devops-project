@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AD-ONLINE - Attestation de destination</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+ <header>
+  <div class="header-inner">
+    <img src="images/dgi-logo.png" alt="Logo DGI" class="logo" />
+    <div class="titles">
+      <h1>Direction Générale des Impôts</h1>
+      <h2>Bienvenue dans l'application « Attestation de destination en ligne »</h2>
+    </div>
+  </div>
+</header>
+
+  <main>
+    <section class="block">
+      <h3>Pour accéder à l'AD concernant l'opération bancaire</h3>
+      <button onclick="showMessage('AD_CLASSIQUE')">Accéder à l'AD classique</button>
+    </section>
+
+    <section class="block">
+      <h3>AD NIVEAU 2</h3>
+      <button onclick="showMessage('AD_NIVEAU2_P1')">AD NIVEAU 2 - P.2.1</button>
+      <button onclick="showMessage('AD_NIVEAU2_P2')">AD NIVEAU 2 - P.2.2</button>
+    </section>
+
+    <p id="message" class="hidden"></p>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 DGI - Tous droits réservés</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

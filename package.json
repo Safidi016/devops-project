@@ -1,15 +1,17 @@
 {
-  "name": "devops-project",
+  "name": "mon-app",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Site vitrine AD-ONLINE simulation",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "jest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "supertest": "^6.3.0"
   }
 }
