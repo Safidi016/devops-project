@@ -13,16 +13,24 @@ pipeline {
 
         stage('Install & Test') {
             steps {
-                sh 'curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs'
-                sh 'npm ci'
-                sh 'npm test'
+                ssh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash'
+                       sh '''
+                       export NVM_DIR="$HOME/.nvm"
+                       [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
+                       nvm install 18
+                       nvm use 18
+                       npm ci
+                       npm test
+                      '''
             }
         }
 
         stage('Build & Push Docker') {
             steps {
                 script {
+                    /* image Docker */
                     def app = docker.build(IMAGE_NAME)
+                    /* registry : enlève l'espace en trop */
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
                         app.push()
                     }
