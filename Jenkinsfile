@@ -2,44 +2,47 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-id')   // ID Jenkins du credential Docker Hub
-        TARGET_IP             = '3.133.150.187'               // IP publique de ton EC2
+        DOCKERHUB_CRED = credentials('docker-hub-id')
+        IMAGE_NAME     = 'safidisoa/devops-project:latest'
     }
 
     stages {
         stage('Checkout') {
-            steps {
-                git 'https://github.com/Safidi016/devops-project.git'
-            }
+            steps { checkout scm }
         }
 
-        stage('Build & Test') {
+        stage('Install & Test') {
             steps {
-                sh 'npm install'
+                sh 'npm ci'
                 sh 'npm test'
             }
         }
 
-        stage('Docker Build & Push') {
+        stage('Build & Push Docker') {
             steps {
                 script {
-                    def img = docker.build("safidi016/mon-app:latest")
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-id') {
-                        img.push()
+                    def app = docker.build(IMAGE_NAME)
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
+                        app.push()
                     }
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to staging') {
             steps {
-                sshagent(['ec2-ssh']) {          // ID Jenkins du credential SSH (clé privée)
+                sshagent(['self-ssh-key']) {
                     sh """
-                        scp -o StrictHostKeyChecking=no deploy.sh ubuntu@${TARGET_IP}:/tmp/
-                        ssh -o StrictHostKeyChecking=no ubuntu@${TARGET_IP} 'bash /tmp/deploy.sh'
+                        scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@localhost:/tmp/
+                        ssh -o StrictHostKeyChecking=no ubuntu@localhost 'chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}'
                     """
                 }
             }
         }
+    }
+
+    post {
+        success { echo '🚀 Staging déployé sur http://<IP>:3000' }
+        failure { echo '❌ Build échoué' }
     }
 }
