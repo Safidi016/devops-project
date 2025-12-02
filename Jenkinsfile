@@ -13,6 +13,7 @@ pipeline {
 
         stage('Install & Test') {
             steps {
+                sh 'curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs'
                 sh 'npm ci'
                 sh 'npm test'
             }
