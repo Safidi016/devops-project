@@ -18,7 +18,7 @@ pipeline {
                     export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
                     node -v
                     npm -v
-                    npm ci
+                    npm install
                     npm test
                 '''
             }
@@ -49,6 +49,6 @@ pipeline {
 
     post {
         success { echo '🚀 Staging déployé sur http://<IP>:3000' }
-        failure { echo '❌ Build échoué' }
+        failure { echo '❌ Build échoué ' }
     }
 }
