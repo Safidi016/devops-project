@@ -13,8 +13,14 @@ pipeline {
 
         stage('Install & Test') {
             steps {
-                sh 'npm ci'
-                sh 'npm test'
+                sh '''
+                    curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
+                    export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
+                    node -v
+                    npm -v
+                    npm ci
+                    npm test
+                '''
             }
         }
 
