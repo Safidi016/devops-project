@@ -2,6 +2,11 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
+const promClient = require('prom-client');
+const register = new promClient.Registry();
+
+
+
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -15,3 +20,13 @@ if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 }
+
+
+// Métriques par défaut
+promClient.collectDefaultMetrics({ register });
+
+// Route /metrics
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
