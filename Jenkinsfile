@@ -49,6 +49,6 @@ pipeline {
 
     post {
         success { echo '🚀 Staging déployé sur http://<IP>:3000' }
-        failure { echo '❌ Build échoué' }
+        failure { echo '❌ Build échoué ' }
     }
 }
