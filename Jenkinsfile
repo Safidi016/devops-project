@@ -18,7 +18,7 @@ pipeline {
                     export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
                     node -v
                     npm -v
-                    npm ci
+                    npm install
                     npm test
                 '''
             }
