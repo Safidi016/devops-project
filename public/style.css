@@ -72,3 +72,24 @@ button:hover {
   font-size: 1.1rem;
   font-weight: normal;
 }
+
+
+/* ### */
+
+/* .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 150px;
+} */
