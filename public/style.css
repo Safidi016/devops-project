@@ -58,7 +58,7 @@ button:hover {
 }
 
 .logo {
-  height: 60px;   
+  height: 60px;
   width: auto;
 }
 
@@ -77,7 +77,7 @@ button:hover {
 
 /* ### */
 
-/* .button-group {
+.button-group {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -93,4 +93,4 @@ button {
   cursor: pointer;
   flex: 1;
   min-width: 150px;
-} */
+}
