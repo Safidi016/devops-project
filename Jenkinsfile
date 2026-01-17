@@ -38,27 +38,30 @@ pipeline {
             }
         }
 
-       stage('Security Scan (Trivy)') {
-    steps {
-        echo "Analyse de sécurité de l'image Docker avec Trivy (via Docker)"
-        sh '''
-            # Génération du rapport HTML directement
-            docker run --rm \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -v $PWD:/report \
-                aquasec/trivy:latest image \
-                --format html \
-                --output /report/trivy-report.html \
-                safidisoa/devops-project:latest
+        stage('Security Scan (Trivy)') {
+            steps {
+                echo "Analyse de sécurité de l'image Docker avec Trivy (via Docker)"
+                sh '''
+                # Récupérer le template HTML depuis GitHub si pas dans le repo
+                curl -L -o $PWD/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-            # Vérification rapide du rapport
-            echo "Contenu initial du rapport :"
-            head -n 20 trivy-report.html
-        '''
-        archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
-    }
-    
-}
+                # Exécuter Trivy avec le template
+                docker run --rm \
+                    -v /var/run/docker.sock:/var/run/docker.sock \
+                    -v $PWD:/report \
+                    aquasec/trivy:latest image \
+                    --format template \
+                    --template "/report/html.tpl" \
+                    --output /report/trivy-report.html \
+                    ${IMAGE_NAME}
+
+                # Vérification rapide du rapport
+                echo "Contenu initial du rapport :"
+                head -n 20 trivy-report.html
+                '''
+                archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
+            }
+        }
 
         stage('Push Docker Image') {
             when {
