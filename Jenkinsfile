@@ -4,7 +4,7 @@ pipeline {
       environment {
         DOCKERHUB_CRED = credentials('docker-hub-id')
         IMAGE_NAME     = 'safidisoa/devops-project:latest'
-        ADMIN_MAIL     = 'safidisoafrederic@gmail.com'
+        ADMIN_MAIL     = 'safidylegrand@gmail.com'
         SMTP_SERVER    = 'smtp.gmail.com'
         SMTP_PORT      = '587'
         SMTP_CRED      = credentials('smtp-credentials')
@@ -110,7 +110,6 @@ post {
                     Jenkins – Pipeline CI/CD
                 """.stripIndent(),
                 to: env.ADMIN_MAIL
-                from : 'safidisoafrederic@gmail.com'
             )
         }
     }
