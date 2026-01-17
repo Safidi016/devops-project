@@ -81,7 +81,7 @@ pipeline {
         Cordialement,
         Jenkins – Pipeline CI/CD
     """.stripIndent(),
-    to: "${env.ADMIN_MAIL}"
+     to: "${env.ADMIN_MAIL}"
 )
         }
         failure {
