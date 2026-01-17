@@ -63,6 +63,7 @@ pipeline {
       post {
          success {
             echo '🚀  Staging déployé sur http://3.133.150.187:3000'
+            echo "Destinataire mail : ${env.ADMIN_MAIL}"
             // Envoi du mail récapitulatif
          emailext (
     subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
@@ -81,7 +82,7 @@ pipeline {
         Cordialement,
         Jenkins – Pipeline CI/CD
     """.stripIndent(),
-     to: "${env.ADMIN_MAIL}"
+     to: env.ADMIN_MAIL
 )
         }
         failure {
