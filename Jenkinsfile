@@ -67,31 +67,25 @@ pipeline {
          success {
             echo '🚀  Staging déployé sur http://3.133.150.187:3000'
             // Envoi du mail récapitulatif
-            emailext (
-                subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
-                body: """
-                    Bonjour,
+         emailext (
+    subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
+    body: """
+        Bonjour,
 
-                    Un développeur vient de pousser une modification qui a été déployée avec succès sur l’environnement de staging :
+        Un développeur vient de pousser une modification qui a été déployée avec succès sur l’environnement de staging :
 
-                    •  Commit  : ${env.GIT_COMMIT.take(7)}
-                    •  Auteur  : ${env.GIT_AUTHOR_NAME}
-                    •  Message : ${env.GIT_COMMIT_MSG}
-                    •  URL     : http://3.133.150.187:3000
+        •  Commit  : ${env.GIT_COMMIT.take(7)}
+        •  Auteur  : ${env.GIT_AUTHOR_NAME}
+        •  Message : ${env.GIT_COMMIT_MSG}
+        •  URL     : http://3.133.150.187:3000
 
-                    Merci de vérifier et valider la nouvelle fonctionnalité.
+        Merci de vérifier et valider la nouvelle fonctionnalité.
 
-                    Cordialement,
-                    Jenkins – Pipeline CI/CD
-                """.stripIndent(),
-                to: "${env.ADMIN_MAIL}",
-                from: '"Jenkins Staging" <jenkins@dgi.mg>',
-                smtpServer: env.SMTP_SERVER,
-                smtpPort: env.SMTP_PORT,
-                useSsl: false,
-                startTls: true,
-                credentialsId: 'smtp-credentials'
-            )
+        Cordialement,
+        Jenkins – Pipeline CI/CD
+    """.stripIndent(),
+    to: "${env.ADMIN_MAIL}"
+)
         }
         failure {
             echo '❌ Build échoué'
