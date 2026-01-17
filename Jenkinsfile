@@ -19,12 +19,12 @@ pipeline {
         stage('Install & Test') {
             steps {
                 sh '''
-                    curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
-                    export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
-                    node -v
-                    npm -v
-                    npm install
-                    npm test
+                curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
+                export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
+                node -v
+                npm -v
+                npm install
+                npm test
                 '''
             }
         }
@@ -32,28 +32,24 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build(IMAGE_NAME)
+                    docker.build(IMAGE_NAME)
                 }
             }
         }
-      stage('Security Scan (Trivy)') {
-         steps {
-            // On suppose que trivy est déjà installé globalement sur l'agent
-              sh '''
-              echo "Téléchargement du template HTML pour Trivy"
-               curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-             echo "Analyse de sécurité de l’image Docker avec Trivy"
-              trivy image \
-             --format template \
-              --template html.tpl \
-              --output trivy-report.html \
-              ${IMAGE_NAME}
-
-                echo "Analyse terminée. Rapport généré : trivy-report.html"
-            '''
-    }
-}
+        stage('Security Scan (Trivy)') {
+            steps {
+                sh '''
+                echo "Analyse de sécurité de l'image Docker avec Trivy (Docker)"
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                  aquasec/trivy:0.68.2 image \
+                  --format template \
+                  --template https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl \
+                  --output trivy-report.html \
+                  ${IMAGE_NAME}
+                '''
+            }
+        }
 
         stage('Push Docker Image') {
             steps {
@@ -68,11 +64,11 @@ pipeline {
         stage('Deploy to staging') {
             steps {
                 sshagent(['self-ssh-key']) {
-                    sh """
-                        scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
-                        ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
-                        "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
-                    """
+                    sh '''
+                    scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
+                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
+                      "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
+                    '''
                 }
             }
         }
@@ -80,7 +76,7 @@ pipeline {
 
     post {
         always {
-            // Archiver correctement le rapport Trivy
+            echo "Archivage du rapport Trivy"
             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
         }
 
