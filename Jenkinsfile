@@ -8,7 +8,7 @@ pipeline {
       environment {
         DOCKERHUB_CRED = credentials('docker-hub-id')
         IMAGE_NAME     = 'safidisoa/devops-project:latest'
-        ADMIN_MAIL     = 'safidylegrand@gmail.com'
+        ADMIN_MAIL     = 'safidisoafrederic@gmail.com'
         SMTP_SERVER    = 'smtp.gmail.com'
         SMTP_PORT      = '587'
         SMTP_CRED      = credentials('smtp-credentials')
@@ -65,7 +65,7 @@ pipeline {
          success {
             echo '🚀  Staging déployé sur http://3.133.150.187:3000'
             echo "Destinataire mail : ${env.ADMIN_MAIL}"
-            // Envoi du mail récapitulatiff
+            // Envoi du mail récapitulatif
          emailext (
     subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
     body: """
