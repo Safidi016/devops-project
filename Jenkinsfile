@@ -32,26 +32,29 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def dockerImage = docker.build(IMAGE_NAME)
-                    env.DOCKER_IMAGE_BUILT = "true"
+                    docker.build(IMAGE_NAME)
                 }
             }
         }
 
-      stage('Security Scan (Trivy)') {
-    steps {
-        sh '''
-        echo "Analyse de sécurité de l'image Docker avec Trivy (format HTML intégré)"
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v $PWD:/report \
-          aquasec/trivy:0.68.2 image \
-          --format html \
-          --output /report/trivy-report.html \
-          ${IMAGE_NAME}
-        '''
-    }
-}
+        stage('Security Scan (Trivy)') {
+            steps {
+                sh '''
+                echo "Installation de Trivy dernière version"
+                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
+                echo "Téléchargement du template HTML"
+                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
+                echo "Analyse de sécurité de l’image Docker avec template HTML"
+                trivy image \
+                  --format template \
+                  --template html.tpl \
+                  --output trivy-report.html \
+                  ${IMAGE_NAME}
+                '''
+            }
+        }
 
         stage('Push Docker Image') {
             steps {
