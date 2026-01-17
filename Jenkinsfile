@@ -38,25 +38,20 @@ pipeline {
             }
         }
 
-        stage('Security Scan (Trivy)') {
-            steps {
-                sh '''
-                echo "Téléchargement du template HTML pour Trivy"
-                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
-                echo "Analyse de sécurité de l'image Docker avec Trivy"
-                docker run --rm \
-                  -v /var/run/docker.sock:/var/run/docker.sock \
-                  -v $PWD/html.tpl:/html.tpl \
-                  -v $PWD:/report \
-                  aquasec/trivy:0.68.2 image \
-                  --format template \
-                  --template /html.tpl \
-                  --output /report/trivy-report.html \
-                  ${IMAGE_NAME}
-                '''
-            }
-        }
+      stage('Security Scan (Trivy)') {
+    steps {
+        sh '''
+        echo "Analyse de sécurité de l'image Docker avec Trivy (format HTML intégré)"
+        docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v $PWD:/report \
+          aquasec/trivy:0.68.2 image \
+          --format html \
+          --output /report/trivy-report.html \
+          ${IMAGE_NAME}
+        '''
+    }
+}
 
         stage('Push Docker Image') {
             steps {
