@@ -19,13 +19,12 @@ pipeline {
         stage('Install & Test') {
             steps {
                 sh '''
-                # Installation Node.js temporaire
-                curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
-                export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
-                node -v
-                npm -v
-                npm install
-                npm test
+                    curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
+                    export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
+                    node -v
+                    npm -v
+                    npm install
+                    npm test
                 '''
             }
         }
@@ -40,20 +39,23 @@ pipeline {
 
         stage('Security Scan (Trivy)') {
             steps {
-                sh '''
-                echo "Installation de Trivy"
-                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                script {
+                    def workspace = pwd()
+                    sh """
+                        echo "Installation de Trivy"
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
-                echo "Téléchargement du template HTML"
-                curl -o $WORKSPACE/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                        echo "Téléchargement du template HTML"
+                        curl -o ${workspace}/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-                echo "Analyse de sécurité de l’image Docker"
-                $WORKSPACE/bin/trivy image \
-                  --format template \
-                  --template $WORKSPACE/html.tpl \
-                  --output $WORKSPACE/trivy-report.html \
-                  ${IMAGE_NAME}
-                '''
+                        echo "Analyse de sécurité de l’image Docker"
+                        ./bin/trivy image \
+                          --format template \
+                          --template ${workspace}/html.tpl \
+                          --output ${workspace}/trivy-report.html \
+                          ${IMAGE_NAME}
+                    """
+                }
             }
         }
 
@@ -70,11 +72,11 @@ pipeline {
         stage('Deploy to staging') {
             steps {
                 sshagent(['self-ssh-key']) {
-                    sh '''
-                    scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
-                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
-                    "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
-                    '''
+                    sh """
+                        scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
+                        ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
+                        "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
+                    """
                 }
             }
         }
@@ -82,7 +84,7 @@ pipeline {
 
     post {
         always {
-            // Archiver le rapport Trivy pour consultation dans Jenkins
+            // Archiver correctement le rapport Trivy
             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
         }
 
@@ -100,7 +102,7 @@ Bonjour,
 Une nouvelle version de l’application a été déployée avec succès sur l’environnement de staging.
 
 • Commit  : ${commit}
-• Auteur : ${author}
+• Auteur  : ${author}
 • Message : ${msg}
 • URL     : http://3.133.150.187:3000
 
