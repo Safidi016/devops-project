@@ -1,11 +1,6 @@
 pipeline {
    agent any
 
-//    environment {
-
-//     DOCKERHUB_CRED = credentials('docker-hub-id')
-//     IMAGE_NAME  = 'safidisoa/devops-project:latest'
-//   }
       environment {
         DOCKERHUB_CRED = credentials('docker-hub-id')
         IMAGE_NAME     = 'safidisoa/devops-project:latest'
@@ -55,40 +50,71 @@ pipeline {
           }
   }
 
-//    post {
-//       success { echo '🚀 Staging déployé sur http://3.133.150.187:3000' 
-// }
-//      failure { echo '❌ Build échoué ' }
+
+
+//       post {
+//          success {
+//             echo '🚀  Staging déployé sur http://3.133.150.187:3000'
+//             echo "Destinataire mail : ${env.ADMIN_MAIL}"
+//             // Envoi du mail récapitulatif
+//          emailext (
+//     subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
+//     body: """
+//         Bonjour,
+
+//         Un développeur vient de pousser une modification qui a été déployée avec succès sur l’environnement de staging :
+
+//         •  Commit  : ${env.GIT_COMMIT.take(7)}
+//         •  Auteur  : ${env.GIT_AUTHOR_NAME}
+//         •  Message : ${env.GIT_COMMIT_MSG}
+//         •  URL     : http://3.133.150.187:3000
+
+//         Merci de vérifier et valider la nouvelle fonctionnalité.
+
+//         Cordialement,
+//         Jenkins – Pipeline CI/CD
+//     """.stripIndent(),
+//      to: env.ADMIN_MAIL
+// )
+//         }
+//         failure {
+//             echo '❌ Build échoué'
+//         }
 //     }
-// }
+post {
+    success {
+        script {
+            // Récupération des infos Git
+            def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            def author = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%an"').trim()
+            def msg    = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%s"').trim()
 
-      post {
-         success {
-            echo '🚀  Staging déployé sur http://3.133.150.187:3000'
+            echo "🚀  Staging déployé sur http://3.133.150.187:3000"
             echo "Destinataire mail : ${env.ADMIN_MAIL}"
-            // Envoi du mail récapitulatif
-         emailext (
-    subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
-    body: """
-        Bonjour,
 
-        Un développeur vient de pousser une modification qui a été déployée avec succès sur l’environnement de staging :
+            emailext (
+                subject: "[Jenkins] Nouvelle fonctionnalité déployée sur staging",
+                body: """
+                    Bonjour,
 
-        •  Commit  : ${env.GIT_COMMIT.take(7)}
-        •  Auteur  : ${env.GIT_AUTHOR_NAME}
-        •  Message : ${env.GIT_COMMIT_MSG}
-        •  URL     : http://3.133.150.187:3000
+                    Un développeur vient de pousser une modification qui a été déployée avec succès sur l’environnement de staging :
 
-        Merci de vérifier et valider la nouvelle fonctionnalité.
+                    •  Commit  : ${commit.take(7)}
+                    •  Auteur  : ${author}
+                    •  Message : ${msg}
+                    •  URL     : http://3.133.150.187:3000 
 
-        Cordialement,
-        Jenkins – Pipeline CI/CD
-    """.stripIndent(),
-     to: env.ADMIN_MAIL
-)
-        }
-        failure {
-            echo '❌ Build échoué'
+                    Merci de vérifier et valider la nouvelle fonctionnalité.
+
+                    Cordialement,
+                    Jenkins – Pipeline CI/CD
+                """.stripIndent(),
+                to: env.ADMIN_MAIL
+            )
         }
     }
+    failure {
+        echo '❌ Build échoué'
+    }
+}
 }
