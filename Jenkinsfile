@@ -2,6 +2,7 @@ pipeline {
    agent any
 
 //    environment {
+
 //     DOCKERHUB_CRED = credentials('docker-hub-id')
 //     IMAGE_NAME  = 'safidisoa/devops-project:latest'
 //   }
