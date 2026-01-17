@@ -33,6 +33,7 @@ pipeline {
             steps {
                 script {
                     docker.build(IMAGE_NAME)
+                    env.DOCKER_IMAGE_BUILT = "true"
                 }
             }
         }
@@ -40,23 +41,24 @@ pipeline {
         stage('Security Scan (Trivy)') {
             steps {
                 sh '''
-                echo "Installation de Trivy dernière version"
-                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
-
                 echo "Téléchargement du template HTML"
                 curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-                echo "Analyse de sécurité de l’image Docker avec template HTML"
-                trivy image \
-                  --format template \
-                  --template html.tpl \
-                  --output trivy-report.html \
-                  ${IMAGE_NAME}
+                echo "Analyse de sécurité de l'image Docker avec Trivy (via Docker)"
+                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                           -v $PWD:/report aquasec/trivy:latest \
+                           image --format template \
+                                 --template /report/html.tpl \
+                                 --output /report/trivy-report.html \
+                                 ${IMAGE_NAME}
                 '''
             }
         }
 
         stage('Push Docker Image') {
+            when {
+                expression { env.DOCKER_IMAGE_BUILT == "true" }
+            }
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
@@ -72,7 +74,7 @@ pipeline {
                     sh '''
                     scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
                     ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
-                    "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
+                        "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
                     '''
                 }
             }
@@ -82,6 +84,7 @@ pipeline {
     post {
 
         always {
+            echo "Archivage du rapport Trivy"
             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
         }
 
