@@ -45,7 +45,8 @@ pipeline {
                 curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
                 echo "Analyse de sécurité de l'image Docker avec Trivy"
-                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
                   -v $PWD/html.tpl:/html.tpl \
                   -v $PWD:/report \
                   aquasec/trivy:0.68.2 image \
