@@ -59,29 +59,29 @@ pipeline {
       //           }
       //       }
       //   }
-   stage('Security Scan (Trivy)') {
-     steps {
+ stage('Security Scan (Trivy)') {
+    steps {
         sh '''
-        # Installation locale de Trivy
+        echo "Installation de Trivy"
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
-        # Vérification
-        ./bin/trivy --version
+        echo " Téléchargement du template HTML"
+        curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-        # Scan sécurité avec template HTML officiel
+        echo " Analyse de sécurité de l’image Docker"
         ./bin/trivy image \
           --format template \
-          --template "@contrib/html.tpl" \
+          --template html.tpl \
           --output trivy-report.html \
-          ${IMAGE_NAME}
+          safidisoa/devops-project:latest
         '''
     }
-    post {
-        always {
-            archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
-        }
-    }
 }
+  post {
+    always {
+        archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
+    }
+  }
 
 
         stage('Push Docker Image') {
