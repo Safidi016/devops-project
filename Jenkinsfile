@@ -39,27 +39,48 @@ pipeline {
             }
         }
 
-        stage('Security Scan (Trivy)') {
-            steps {
-                sh '''
-                # Installation de Trivy
-                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-                sudo mv ./bin/trivy /usr/local/bin/trivy
+      //   stage('Security Scan (Trivy)') {
+      //       steps {
+      //           sh '''
+      //           # Installation de Trivy
+      //           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+      //           sudo mv ./bin/trivy /usr/local/bin/trivy
 
-                # Vérification
-                trivy --version
+      //           # Vérification
+      //           trivy --version
 
-                # Analyse de sécurité
-                trivy image --format html --output trivy-report.html ${IMAGE_NAME}
-                '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
-                }
-            }
+      //           # Analyse de sécurité
+      //           trivy image --format html --output trivy-report.html ${IMAGE_NAME}
+      //           '''
+      //       }
+      //       post {
+      //           always {
+      //               archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
+      //           }
+      //       }
+      //   }
+   stage('Security Scan (Trivy)') {
+    steps {
+        sh '''
+        # Installation locale de Trivy (sans sudo)
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+        # Vérification
+        ./bin/trivy --version
+
+        # Analyse de sécurité de l’image Docker
+        ./bin/trivy image \
+          --format html \
+          --output trivy-report.html \
+          ${IMAGE_NAME}
+        '''
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
         }
-
+    }
+     }
         stage('Push Docker Image') {
             steps {
                 script {
