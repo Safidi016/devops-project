@@ -110,6 +110,7 @@ post {
                     Jenkins – Pipeline CI/CD
                 """.stripIndent(),
                 to: env.ADMIN_MAIL
+                from : 'safidisoafrederic@gmail.com'
             )
         }
     }
