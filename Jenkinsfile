@@ -57,6 +57,7 @@ pipeline {
         '''
         archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
     }
+    
 }
 
         stage('Push Docker Image') {
