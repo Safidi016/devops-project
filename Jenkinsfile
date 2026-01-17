@@ -32,7 +32,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build(IMAGE_NAME)
+                    def dockerImage = docker.build(IMAGE_NAME)
+                    env.DOCKER_IMAGE_BUILT = "true"
                 }
             }
         }
@@ -40,12 +41,17 @@ pipeline {
         stage('Security Scan (Trivy)') {
             steps {
                 sh '''
-                echo "Analyse de sécurité de l'image Docker avec Trivy (Docker)"
+                echo "Téléchargement du template HTML pour Trivy"
+                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+
+                echo "Analyse de sécurité de l'image Docker avec Trivy"
                 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v $PWD/html.tpl:/html.tpl \
+                  -v $PWD:/report \
                   aquasec/trivy:0.68.2 image \
                   --format template \
-                  --template https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl \
-                  --output trivy-report.html \
+                  --template /html.tpl \
+                  --output /report/trivy-report.html \
                   ${IMAGE_NAME}
                 '''
             }
@@ -67,7 +73,7 @@ pipeline {
                     sh '''
                     scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
                     ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
-                      "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
+                    "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
                     '''
                 }
             }
@@ -75,8 +81,8 @@ pipeline {
     }
 
     post {
+
         always {
-            echo "Archivage du rapport Trivy"
             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
         }
 
