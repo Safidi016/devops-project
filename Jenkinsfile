@@ -60,6 +60,7 @@ pipeline {
 //      failure { echo '❌ Build échoué ' }
 //     }
 // }
+
       post {
          success {
             echo '🚀  Staging déployé sur http://3.133.150.187:3000'
