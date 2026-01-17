@@ -36,28 +36,24 @@ pipeline {
                 }
             }
         }
+      stage('Security Scan (Trivy)') {
+         steps {
+            // On suppose que trivy est déjà installé globalement sur l'agent
+              sh '''
+              echo "Téléchargement du template HTML pour Trivy"
+               curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-        stage('Security Scan (Trivy)') {
-            steps {
-                script {
-                    def workspace = pwd()
-                    sh """
-                        echo "Installation de Trivy"
-                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+             echo "Analyse de sécurité de l’image Docker avec Trivy"
+              trivy image \
+             --format template \
+              --template html.tpl \
+              --output trivy-report.html \
+              ${IMAGE_NAME}
 
-                        echo "Téléchargement du template HTML"
-                        curl -o ${workspace}/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
-                        echo "Analyse de sécurité de l’image Docker"
-                        ./bin/trivy image \
-                          --format template \
-                          --template ${workspace}/html.tpl \
-                          --output ${workspace}/trivy-report.html \
-                          ${IMAGE_NAME}
-                    """
-                }
-            }
-        }
+                echo "Analyse terminée. Rapport généré : trivy-report.html"
+            '''
+    }
+}
 
         stage('Push Docker Image') {
             steps {
