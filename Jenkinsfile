@@ -5,8 +5,6 @@ pipeline {
         DOCKERHUB_CRED = credentials('docker-hub-id')
         IMAGE_NAME     = 'safidisoa/devops-project:latest'
         ADMIN_MAIL     = 'safidylegrand@gmail.com'
-        SMTP_SERVER    = 'smtp.gmail.com'
-        SMTP_PORT      = '587'
         SMTP_CRED      = credentials('smtp-credentials')
     }
 
@@ -34,61 +32,36 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build(IMAGE_NAME)
+                    def dockerImage = docker.build(IMAGE_NAME)
+                    env.DOCKER_IMAGE_BUILT = "true"
                 }
             }
         }
 
-      //   stage('Security Scan (Trivy)') {
-      //       steps {
-      //           sh '''
-      //           # Installation de Trivy
-      //           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-      //           sudo mv ./bin/trivy /usr/local/bin/trivy
+        stage('Security Scan (Trivy)') {
+            steps {
+                sh '''
+                echo "Installation de Trivy"
+                curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
-      //           # Vérification
-      //           trivy --version
+                echo "Téléchargement du template HTML"
+                curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
-      //           # Analyse de sécurité
-      //           trivy image --format html --output trivy-report.html ${IMAGE_NAME}
-      //           '''
-      //       }
-      //       post {
-      //           always {
-      //               archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
-      //           }
-      //       }
-      //   }
- stage('Security Scan (Trivy)') {
-    steps {
-        sh '''
-        echo "Installation de Trivy"
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-
-        echo " Téléchargement du template HTML"
-        curl -o html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-
-        echo " Analyse de sécurité de l’image Docker"
-        ./bin/trivy image \
-          --format template \
-          --template html.tpl \
-          --output trivy-report.html \
-          safidisoa/devops-project:latest
-        '''
-    }
-}
-  post {
-    always {
-        archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
-    }
-  }
-
+                echo "Analyse de sécurité de l’image Docker"
+                ./bin/trivy image \
+                  --format template \
+                  --template html.tpl \
+                  --output trivy-report.html \
+                  ${IMAGE_NAME}
+                '''
+            }
+        }
 
         stage('Push Docker Image') {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
-                        dockerImage.push()
+                        docker.image(IMAGE_NAME).push()
                     }
                 }
             }
@@ -108,6 +81,11 @@ pipeline {
     }
 
     post {
+
+        always {
+            archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
+        }
+
         success {
             script {
                 def commit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
@@ -122,7 +100,7 @@ Bonjour,
 Une nouvelle version de l’application a été déployée avec succès sur l’environnement de staging.
 
 • Commit  : ${commit}
-• Auteur : ${author}
+• Auteur  : ${author}
 • Message : ${msg}
 • URL     : http://3.133.150.187:3000
 
