@@ -60,17 +60,18 @@ pipeline {
       //       }
       //   }
    stage('Security Scan (Trivy)') {
-    steps {
+     steps {
         sh '''
-        # Installation locale de Trivy (sans sudo)
+        # Installation locale de Trivy
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
         # Vérification
         ./bin/trivy --version
 
-        # Analyse de sécurité de l’image Docker
+        # Scan sécurité avec template HTML officiel
         ./bin/trivy image \
-          --format html \
+          --format template \
+          --template "@contrib/html.tpl" \
           --output trivy-report.html \
           ${IMAGE_NAME}
         '''
@@ -80,7 +81,9 @@ pipeline {
             archiveArtifacts artifacts: 'trivy-report.html', allowEmptyArchive: false
         }
     }
-     }
+}
+
+
         stage('Push Docker Image') {
             steps {
                 script {
