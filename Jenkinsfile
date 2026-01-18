@@ -6,6 +6,7 @@ pipeline {
         IMAGE_NAME     = 'safidisoa/devops-project:latest'
         ADMIN_MAIL     = 'safidylegrand@gmail.com'
         SMTP_CRED      = credentials('smtp-credentials')
+        TRIVY_SERVER   = 'http://172.31.15.14:4954'   // IP du serveur Trivy
     }
 
     stages {
@@ -37,88 +38,7 @@ pipeline {
                 }
             }
         }
-  stage('Security Scan (Trivy)') {
-     steps {
-        echo 'Analyse de sécurité de l’image Docker avec Trivy'
-        sh '''
-          docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v /var/jenkins_home/workspace/devops-pipeline:/report \
-           aquasec/trivy:latest image \
-          --scanners vuln \
-          --severity HIGH,CRITICAL \
-          --exit-code 1 \
-          --format template \
-          --template "@/contrib/html.tpl" \
-          --output /report/trivy-report.html \
-          safidisoa/devops-project:latest
 
-        '''
-    }
-}
-
-
-        stage('Push Docker Image') {
-            when {
-                expression { env.DOCKER_IMAGE_BUILT == "true" }
-            }
+        stage('Security Scan (Trivy)') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
-                        docker.image(IMAGE_NAME).push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to staging') {
-            steps {
-                sshagent(['self-ssh-key']) {
-                    sh '''
-                    scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
-                    ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
-                        "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
-                    '''
-                }
-            }
-        }
-    }
-
-    post {
-
-        always {
-            echo "Archivage du rapport Trivy"
-            archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
-        }
-
-        success {
-            script {
-                def commit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                def author = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%an"').trim()
-                def msg    = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%s"').trim()
-
-                emailext(
-                    subject: "[Jenkins] Déploiement réussi sur Staging",
-                    body: """
-Bonjour,
-
-Une nouvelle version de l’application a été déployée avec succès sur l’environnement de staging.
-
-• Commit  : ${commit}
-• Auteur  : ${author}
-• Message : ${msg}
-• URL     : http://3.133.150.187:3000
-
-Cordialement,
-Jenkins CI/CD
-""",
-                    to: env.ADMIN_MAIL
-                )
-            }
-        }
-
-        failure {
-            echo '❌ Build échoué'
-        }
-    }
-}
+                echo 'Analyse de sécurité de l’image Docker avec Trivy (Grafana / Prometheus)'
