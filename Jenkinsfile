@@ -41,16 +41,18 @@ pipeline {
      steps {
         echo 'Analyse de sécurité de l’image Docker avec Trivy'
         sh '''
-        docker run --rm \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v /var/jenkins_home/workspace/devops-pipeline:/report \
-        aquasec/trivy:latest image \
-        --scanners vuln \
-        --severity HIGH,CRITICAL \
-        --exit-code 1 \
-        --format html \
-        --output /report/trivy-report.html \
-        safidisoa/devops-project:latest
+          docker run --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v /var/jenkins_home/workspace/devops-pipeline:/report \
+           aquasec/trivy:latest image \
+          --scanners vuln \
+          --severity HIGH,CRITICAL \
+          --exit-code 1 \
+          --format template \
+          --template "@/contrib/html.tpl" \
+          --output /report/trivy-report.html \
+          safidisoa/devops-project:latest
+
         '''
     }
 }
