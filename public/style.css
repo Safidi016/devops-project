@@ -58,7 +58,7 @@ button:hover {
 }
 
 .logo {
-  height: 60px;   /* ajuste selon tes besoins */
+  height: 60px;
   width: auto;
 }
 
@@ -72,6 +72,7 @@ button:hover {
   font-size: 1.1rem;
   font-weight: normal;
 }
+
 
 
 /* ### */
