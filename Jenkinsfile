@@ -37,8 +37,8 @@ pipeline {
                 }
             }
         }
-     stage('Security Scan (Trivy)') {
-      steps {
+  stage('Security Scan (Trivy)') {
+    steps {
         echo "Analyse de sécurité de l'image Docker avec Trivy"
         sh '''
         docker run --rm \
@@ -46,7 +46,7 @@ pipeline {
           -v $PWD:/report \
           aquasec/trivy:latest image \
           --format template \
-          --template @/report/html.tpl \
+          --template @/report/trivy-template/html.tpl \
           --output /report/trivy-report.html \
           safidisoa/devops-project:latest
         '''
