@@ -20,7 +20,6 @@
     a { color: #1a0dab; text-decoration: none; }
     a:hover { text-decoration: underline; }
   </style>
-  
 </head>
 <body>
 <h1>{{- escapeXML ( index . 0 ).Target }} - Trivy Security Report</h1>

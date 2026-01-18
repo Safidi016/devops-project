@@ -46,6 +46,7 @@ pipeline {
                   -v /var/run/docker.sock:/var/run/docker.sock \
                   -v /var/jenkins_home/workspace/devops-project:/report \
                   aquasec/trivy:latest image \
+                  --scanners vuln \
                   --format template \
                   --template "@/report/html.tpl" \
                   --output /report/trivy-report.html \
