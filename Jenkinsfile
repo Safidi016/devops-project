@@ -41,15 +41,16 @@ pipeline {
     steps {
         echo "Analyse de sécurité de l'image Docker avec Trivy"
         sh '''
-        docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v $PWD:/report \
-          aquasec/trivy:latest image \
+           docker run --rm \
+           -v /var/run/docker.sock:/var/run/docker.sock \
+           -v $PWD:/report \
+           aquasec/trivy:latest image \
           --format template \
           --template @/report/trivy-template/html.tpl \
-          --output /report/trivy-report.html \
-          safidisoa/devops-project:latest
-        '''
+           --output /report/trivy-report.html \
+           safidisoa/devops-project:latest
+           '''
+
         archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
     }
 }
