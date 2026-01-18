@@ -38,6 +38,7 @@ pipeline {
             }
         }
 
+
         stage('Security Scan (Trivy)') {
             steps {
                 echo 'Analyse de sécurité de l’image Docker avec Trivy'
