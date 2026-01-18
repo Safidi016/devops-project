@@ -22,6 +22,7 @@ if (require.main === module) {
 }
 
 
+
 // Métriques par défaut
 promClient.collectDefaultMetrics({ register });
 
