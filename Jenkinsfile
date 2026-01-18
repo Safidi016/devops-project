@@ -38,22 +38,28 @@ pipeline {
             }
         }
 
-
         stage('Security Scan (Trivy)') {
             steps {
-                echo 'Analyse de sécurité de l’image Docker avec Trivy'
+                echo "Analyse de sécurité de l'image Docker avec Trivy (via Docker)"
                 sh '''
-                docker run --rm \
-               -v /var/run/docker.sock:/var/run/docker.sock \
-               -v "$WORKSPACE:/report" \
-               aquasec/trivy:latest image \
-               --scanners vuln \
-              --format template \
-              --template "@/report/html.tpl" \
-              --output /report/trivy-report.html \
-             safidisoa/devops-project:latest
+                # Récupérer le template HTML depuis GitHub si pas dans le repo
+                curl -L -o $PWD/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
+                # Exécuter Trivy avec le template
+                docker run --rm \
+                    -v /var/run/docker.sock:/var/run/docker.sock \
+                    -v $PWD:/report \
+                    aquasec/trivy:latest image \
+                    --format template \
+                    --template "/report/html.tpl" \
+                    --output /report/trivy-report.html \
+                    ${IMAGE_NAME}
+
+                # Vérification rapide du rapport
+                echo "Contenu initial du rapport :"
+                head -n 20 trivy-report.html
                 '''
+                archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
             }
         }
 
@@ -84,6 +90,7 @@ pipeline {
     }
 
     post {
+
         always {
             echo "Archivage du rapport Trivy"
             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
