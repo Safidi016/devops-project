@@ -8,6 +8,7 @@ pipeline {
         SMTP_CRED      = credentials('smtp-credentials')
     }
 
+
     stages {
 
         stage('Checkout') {
