@@ -1,9 +1,6 @@
-node_modules/
-.env
-*.log
 node_modules
-app/node_modules
-**/node_modules
-trivy-report.*
+npm-debug.log
 .git
-coverage
+.gitignore
+Dockerfile
+Jenkinsfile
