@@ -46,7 +46,7 @@ pipeline {
                   aquasec/trivy:latest image \
                   --scanners vuln \
                   --severity HIGH,CRITICAL \
-                 ----exit-code 0 \
+                 --exit-code 0 \
                   safidisoa/devops-project:latest
            '''
     }
