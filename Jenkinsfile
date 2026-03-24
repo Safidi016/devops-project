@@ -37,21 +37,18 @@ pipeline {
                 }
             }
         }
-  stage('Security Scan (Trivy)') {
-    steps {
-        echo "Analyse de sécurité de l'image Docker avec Trivy"
-        sh '''
-           docker run --rm \
-           -v /var/run/docker.sock:/var/run/docker.sock \
-           -v $PWD:/report \
-           aquasec/trivy:latest image \
-          --format template \
-          --template @/report/trivy-template/html.tpl \
-           --output /report/trivy-report.html \
-           safidisoa/devops-project:latest
+     stage('Security Gate (Trivy)') {
+         steps {
+             echo 'Quality Gate de sécurité (Trivy)'
+                 sh '''
+                    docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  aquasec/trivy:latest image \
+                  --scanners vuln \
+                  --severity HIGH,CRITICAL \
+                  --exit-code 0 \
+                  safidisoa/devops-project:latest
            '''
-
-        archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
     }
 }
 
