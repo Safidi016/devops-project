@@ -1,3 +1,125 @@
+// pipeline {
+//     agent any
+
+//     environment {
+//         DOCKERHUB_CRED = credentials('docker-hub-id')
+//         IMAGE_NAME     = 'safidisoa/devops-project:latest'
+//         ADMIN_MAIL     = 'safidylegrand@gmail.com'
+//         SMTP_CRED      = credentials('smtp-credentials')
+//     }
+
+//     stages {
+
+//         stage('Checkout') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Install & Test') {
+//             steps {
+//                 sh '''
+//                 curl -L https://nodejs.org/dist/v18.18.0/node-v18.18.0-linux-x64.tar.gz | tar -xz -C /tmp
+//                 export PATH=/tmp/node-v18.18.0-linux-x64/bin:$PATH
+//                 node -v
+//                 npm -v
+//                 npm install
+//                 npm test
+//                 '''
+//             }
+//         }
+
+//         stage('Build Docker Image') {   
+//             steps {
+//                 script {
+//                     docker.build(IMAGE_NAME)
+//                     env.DOCKER_IMAGE_BUILT = "true"
+//                 }
+//             }
+//         }
+//      stage('Security Gate (Trivy)') {
+//          steps {
+//              echo 'Quality Gate de sécurité (Trivy)'
+//                  sh '''
+//                     docker run --rm \
+//                   -v /var/run/docker.sock:/var/run/docker.sock \
+//                   aquasec/trivy:latest image \
+//                   --scanners vuln \
+//                   --severity HIGH,CRITICAL \
+//                   --exit-code 0 \
+//                   safidisoa/devops-project:latest
+//            '''
+//     }
+// }
+
+
+//         stage('Push Docker Image') {
+//             when {
+//                 expression { env.DOCKER_IMAGE_BUILT == "true" }
+//             }
+//             steps {
+//                 script {
+//                     docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-id') {
+//                         docker.image(IMAGE_NAME).push()
+//                     }
+//                 }
+//             }
+//         }
+
+//         stage('Deploy to staging') {
+//             steps {
+//                 sshagent(['self-ssh-key']) {
+//                     sh '''
+//                     scp -o StrictHostKeyChecking=no deploy-staging.sh ubuntu@172.31.15.14:/tmp/
+//                     ssh -o StrictHostKeyChecking=no ubuntu@172.31.15.14 \
+//                         "chmod +x /tmp/deploy-staging.sh && /tmp/deploy-staging.sh ${IMAGE_NAME}"
+//                     '''
+//                 }
+//             }
+//         }
+//     }
+
+//     post {
+
+//         always {
+//             echo "Archivage du rapport Trivy"
+//             archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
+//         }
+
+//         success {
+//             script {
+//                 def commit = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+//                 def author = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%an"').trim()
+//                 def msg    = sh(returnStdout: true, script: 'git log -1 --pretty=format:"%s"').trim()
+
+//                 emailext(
+//                     subject: "[Jenkins] Déploiement réussi sur Staging",
+//                     body: """
+// Bonjour,
+
+// Une nouvelle version de l’application a été déployée avec succès sur l’environnement de staging.
+
+// • Commit  : ${commit}
+// • Auteur  : ${author}
+// • Message : ${msg}
+// • URL     : http://3.133.150.187:3000
+
+// Cordialement,
+// Jenkins CI/CD
+// """,
+//                     to: env.ADMIN_MAIL
+//                 )
+//             }
+//         }
+
+//         failure {
+//             echo '❌ Build échoué'
+//         }
+//     }
+// }   
+
+
+
 pipeline {
     agent any
 
@@ -37,21 +159,21 @@ pipeline {
                 }
             }
         }
-     stage('Security Gate (Trivy)') {
-         steps {
-             echo 'Quality Gate de sécurité (Trivy)'
-                 sh '''
-                    docker run --rm \
+
+        stage('Security Gate (Trivy)') {
+            steps {
+                echo 'Quality Gate de sécurité (Trivy)'
+                sh '''
+                docker run --rm \
                   -v /var/run/docker.sock:/var/run/docker.sock \
-                  aquasec/trivy:latest image \
+                  ghcr.io/aquasecurity/trivy:latest image \
                   --scanners vuln \
                   --severity HIGH,CRITICAL \
                   --exit-code 0 \
                   safidisoa/devops-project:latest
-           '''
-    }
-}
-
+                '''
+            }
+        }
 
         stage('Push Docker Image') {
             when {
@@ -83,7 +205,6 @@ pipeline {
 
         always {
             echo "Archivage du rapport Trivy"
-            archiveArtifacts artifacts: 'trivy-report.html', fingerprint: true
         }
 
         success {
@@ -97,7 +218,7 @@ pipeline {
                     body: """
 Bonjour,
 
-Une nouvelle version de l’application a été déployée avec succès sur l’environnement de staging.
+Déploiement réussi 🎉
 
 • Commit  : ${commit}
 • Auteur  : ${author}
@@ -105,7 +226,7 @@ Une nouvelle version de l’application a été déployée avec succès sur l’
 • URL     : http://3.133.150.187:3000
 
 Cordialement,
-Jenkins CI/CD
+Jenkins
 """,
                     to: env.ADMIN_MAIL
                 )
